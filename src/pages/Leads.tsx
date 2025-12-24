@@ -25,10 +25,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Edit, Trash2, Eye, Filter } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit, Trash2, Eye, Filter, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { BulkUploadModal } from '@/components/leads/BulkUploadModal';
 
 const statusOptions: LeadStatus[] = ['new', 'contacted', 'qualified', 'converted', 'lost'];
 
@@ -38,6 +39,7 @@ export default function Leads() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
@@ -130,13 +132,22 @@ export default function Leads() {
             </Select>
           </div>
 
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-neon text-primary-foreground hover:opacity-90">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Lead
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsBulkUploadOpen(true)}
+              className="border-primary/30 hover:bg-primary/10"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Bulk Upload
+            </Button>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-neon text-primary-foreground hover:opacity-90">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Lead
+                </Button>
+              </DialogTrigger>
             <DialogContent className="bg-card border-border max-w-lg">
               <DialogHeader>
                 <DialogTitle className="font-display">Create New Lead</DialogTitle>
@@ -232,6 +243,7 @@ export default function Leads() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Leads Table */}
@@ -476,6 +488,9 @@ export default function Leads() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen} />
     </div>
   );
 }
