@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Bell, Plus, ChevronDown } from 'lucide-react';
+import { Search, Bell, Plus, ChevronDown, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +19,7 @@ interface HeaderProps {
 
 export function Header({ title, subtitle, onSearch, actions }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const { user, signOut } = useAuth();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -72,6 +74,29 @@ export function Header({ title, subtitle, onSearch, actions }: HeaderProps) {
               3
             </span>
           </Button>
+
+          {/* User info & Sign out */}
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-medium">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-muted-foreground max-w-32 truncate">
+                    {user.email}
+                  </span>
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
+                <DropdownMenuItem className="cursor-pointer text-destructive" onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Custom actions */}
           {actions}
