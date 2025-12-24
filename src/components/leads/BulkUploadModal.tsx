@@ -341,14 +341,14 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
                       {field.label} {field.required && <span className="text-destructive">*</span>}
                     </label>
                     <Select
-                      value={columnMapping[field.key as keyof ColumnMapping]}
-                      onValueChange={(v) => setColumnMapping({ ...columnMapping, [field.key]: v })}
+                      value={columnMapping[field.key as keyof ColumnMapping] || '__none__'}
+                      onValueChange={(v) => setColumnMapping({ ...columnMapping, [field.key]: v === '__none__' ? '' : v })}
                     >
                       <SelectTrigger className="bg-muted/50">
                         <SelectValue placeholder="Select column" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="">-- Not mapped --</SelectItem>
+                        <SelectItem value="__none__">-- Not mapped --</SelectItem>
                         {headers.map((header) => (
                           <SelectItem key={header} value={header}>
                             {header}
