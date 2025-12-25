@@ -25,11 +25,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Edit, Trash2, Eye, Filter, Upload } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit, Trash2, Eye, Filter, Upload, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BulkUploadModal } from '@/components/leads/BulkUploadModal';
+import { GenerateEmailDialog } from '@/components/leads/GenerateEmailDialog';
 
 const statusOptions: LeadStatus[] = ['new', 'contacted', 'qualified', 'converted', 'lost'];
 
@@ -42,6 +43,7 @@ export default function Leads() {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [emailLead, setEmailLead] = useState<Lead | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -313,6 +315,9 @@ export default function Leads() {
                           <DropdownMenuItem onClick={() => setSelectedLead(lead)} className="cursor-pointer">
                             <Eye className="w-4 h-4 mr-2" /> View
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setEmailLead(lead)} className="cursor-pointer">
+                            <Mail className="w-4 h-4 mr-2" /> Generate Email
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(lead)} className="cursor-pointer">
                             <Edit className="w-4 h-4 mr-2" /> Edit
                           </DropdownMenuItem>
@@ -491,6 +496,13 @@ export default function Leads() {
 
       {/* Bulk Upload Modal */}
       <BulkUploadModal open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen} />
+
+      {/* Generate Email Dialog */}
+      <GenerateEmailDialog 
+        lead={emailLead} 
+        open={!!emailLead} 
+        onOpenChange={(open) => !open && setEmailLead(null)} 
+      />
     </div>
   );
 }
