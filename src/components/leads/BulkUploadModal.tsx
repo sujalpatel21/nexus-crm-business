@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, FileSpreadsheet, AlertTriangle, Check, X } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertTriangle, Check } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -20,13 +20,17 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useLeads } from '@/hooks/useLeads';
+import { useLeads, useAllLeads } from '@/hooks/useLeads';
 import { useToast } from '@/hooks/use-toast';
-import { LeadStatus } from '@/types/database';
+import { LeadStatus, LeadSheet } from '@/types/database';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
 interface BulkUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sheets: LeadSheet[];
+  activeSheetId: string | null;
 }
 
 interface ParsedRow {
@@ -57,13 +61,15 @@ const leadFields = [
   { key: 'notes', label: 'Notes', required: false },
 ];
 
-export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
-  const { leads, createLead } = useLeads();
+export function BulkUploadModal({ open, onOpenChange, sheets, activeSheetId }: BulkUploadModalProps) {
+  const { leads } = useAllLeads();
+  const { createLead } = useLeads();
   const { toast } = useToast();
   const [step, setStep] = useState<'upload' | 'mapping' | 'preview' | 'importing'>('upload');
   const [parsedData, setParsedData] = useState<ParsedRow[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [fileName, setFileName] = useState('');
+  const [selectedSheetId, setSelectedSheetId] = useState<string>(activeSheetId || '');
   const [columnMapping, setColumnMapping] = useState<ColumnMapping>({
     name: '',
     email: '',
@@ -111,70 +117,73 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
     });
   };
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
 
-    setFileName(file.name);
-    const extension = file.name.split('.').pop()?.toLowerCase();
+      setFileName(file.name);
+      const extension = file.name.split('.').pop()?.toLowerCase();
 
-    try {
-      let result: { data: ParsedRow[]; headers: string[] };
+      try {
+        let result: { data: ParsedRow[]; headers: string[] };
 
-      if (extension === 'csv') {
-        result = await parseCSV(file);
-      } else if (['xlsx', 'xls'].includes(extension || '')) {
-        result = await parseExcel(file);
-      } else {
+        if (extension === 'csv') {
+          result = await parseCSV(file);
+        } else if (['xlsx', 'xls'].includes(extension || '')) {
+          result = await parseExcel(file);
+        } else {
+          toast({
+            title: 'Unsupported file format',
+            description: 'Please upload a CSV or Excel file.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        setParsedData(result.data);
+        setHeaders(result.headers);
+
+        // Auto-map columns based on header names
+        const autoMapping: ColumnMapping = {
+          name: '',
+          email: '',
+          phone: '',
+          city: '',
+          source: '',
+          notes: '',
+        };
+
+        result.headers.forEach((header) => {
+          const lowerHeader = header.toLowerCase();
+          if (lowerHeader.includes('name') && !autoMapping.name) autoMapping.name = header;
+          if (lowerHeader.includes('email') && !autoMapping.email) autoMapping.email = header;
+          if (lowerHeader.includes('phone') || lowerHeader.includes('mobile') || lowerHeader.includes('tel')) {
+            if (!autoMapping.phone) autoMapping.phone = header;
+          }
+          if (lowerHeader.includes('city') || lowerHeader.includes('location')) {
+            if (!autoMapping.city) autoMapping.city = header;
+          }
+          if (lowerHeader.includes('source') || lowerHeader.includes('channel')) {
+            if (!autoMapping.source) autoMapping.source = header;
+          }
+          if (lowerHeader.includes('note') || lowerHeader.includes('comment') || lowerHeader.includes('remark')) {
+            if (!autoMapping.notes) autoMapping.notes = header;
+          }
+        });
+
+        setColumnMapping(autoMapping);
+        setStep('mapping');
+      } catch (error) {
         toast({
-          title: 'Unsupported file format',
-          description: 'Please upload a CSV or Excel file.',
+          title: 'Error parsing file',
+          description: 'Could not read the file. Please check the format.',
           variant: 'destructive',
         });
-        return;
       }
-
-      setParsedData(result.data);
-      setHeaders(result.headers);
-      
-      // Auto-map columns based on header names
-      const autoMapping: ColumnMapping = {
-        name: '',
-        email: '',
-        phone: '',
-        city: '',
-        source: '',
-        notes: '',
-      };
-      
-      result.headers.forEach((header) => {
-        const lowerHeader = header.toLowerCase();
-        if (lowerHeader.includes('name') && !autoMapping.name) autoMapping.name = header;
-        if (lowerHeader.includes('email') && !autoMapping.email) autoMapping.email = header;
-        if (lowerHeader.includes('phone') || lowerHeader.includes('mobile') || lowerHeader.includes('tel')) {
-          if (!autoMapping.phone) autoMapping.phone = header;
-        }
-        if (lowerHeader.includes('city') || lowerHeader.includes('location')) {
-          if (!autoMapping.city) autoMapping.city = header;
-        }
-        if (lowerHeader.includes('source') || lowerHeader.includes('channel')) {
-          if (!autoMapping.source) autoMapping.source = header;
-        }
-        if (lowerHeader.includes('note') || lowerHeader.includes('comment') || lowerHeader.includes('remark')) {
-          if (!autoMapping.notes) autoMapping.notes = header;
-        }
-      });
-      
-      setColumnMapping(autoMapping);
-      setStep('mapping');
-    } catch (error) {
-      toast({
-        title: 'Error parsing file',
-        description: 'Could not read the file. Please check the format.',
-        variant: 'destructive',
-      });
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -188,19 +197,17 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
 
   const checkDuplicates = () => {
     const found: DuplicateInfo[] = [];
-    
+
     parsedData.forEach((row) => {
       const rowEmail = row[columnMapping.email]?.toLowerCase().trim();
       const rowPhone = row[columnMapping.phone]?.trim();
-      
-      const existingByEmail = rowEmail ? leads.find(
-        (lead) => lead.email?.toLowerCase().trim() === rowEmail
-      ) : null;
-      
-      const existingByPhone = rowPhone ? leads.find(
-        (lead) => lead.phone?.trim() === rowPhone
-      ) : null;
-      
+
+      const existingByEmail = rowEmail
+        ? leads.find((lead) => lead.email?.toLowerCase().trim() === rowEmail)
+        : null;
+
+      const existingByPhone = rowPhone ? leads.find((lead) => lead.phone?.trim() === rowPhone) : null;
+
       if (existingByEmail) {
         found.push({
           row,
@@ -215,7 +222,7 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
         });
       }
     });
-    
+
     setDuplicates(found);
   };
 
@@ -260,6 +267,7 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
           notes: row[columnMapping.notes] || null,
           status: 'new' as LeadStatus,
           assigned_to: null,
+          sheet_id: selectedSheetId || null,
         });
         successCount++;
       } catch (error) {
@@ -281,6 +289,7 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
     setParsedData([]);
     setHeaders([]);
     setFileName('');
+    setSelectedSheetId(activeSheetId || '');
     setColumnMapping({
       name: '',
       email: '',
@@ -294,6 +303,8 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
     onOpenChange(false);
   };
 
+  const selectedSheet = sheets.find((s) => s.id === selectedSheetId);
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-card border-border max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -305,22 +316,43 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
         </DialogHeader>
 
         {step === 'upload' && (
-          <div
-            {...getRootProps()}
-            className={cn(
-              'border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors',
-              isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-            )}
-          >
-            <input {...getInputProps()} />
-            <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg font-medium mb-2">
-              {isDragActive ? 'Drop the file here' : 'Drag & drop a file here'}
-            </p>
-            <p className="text-muted-foreground mb-4">or click to browse</p>
-            <p className="text-sm text-muted-foreground">
-              Supported formats: CSV, Excel (.xlsx, .xls)
-            </p>
+          <div className="space-y-6">
+            {/* Sheet Selection */}
+            <div className="space-y-2">
+              <Label>Import to Sheet</Label>
+              <Select value={selectedSheetId || '__none__'} onValueChange={(v) => setSelectedSheetId(v === '__none__' ? '' : v)}>
+                <SelectTrigger className="bg-muted/50">
+                  <SelectValue placeholder="Select a sheet (optional)" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="__none__">No Sheet (Unassigned)</SelectItem>
+                  {sheets.map((sheet) => (
+                    <SelectItem key={sheet.id} value={sheet.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: sheet.color }} />
+                        {sheet.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div
+              {...getRootProps()}
+              className={cn(
+                'border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors',
+                isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+              )}
+            >
+              <input {...getInputProps()} />
+              <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-lg font-medium mb-2">
+                {isDragActive ? 'Drop the file here' : 'Drag & drop a file here'}
+              </p>
+              <p className="text-muted-foreground mb-4">or click to browse</p>
+              <p className="text-sm text-muted-foreground">Supported formats: CSV, Excel (.xlsx, .xls)</p>
+            </div>
           </div>
         )}
 
@@ -330,6 +362,11 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
               <FileSpreadsheet className="w-4 h-4" />
               <span>{fileName}</span>
               <Badge variant="secondary">{parsedData.length} rows</Badge>
+              {selectedSheet && (
+                <Badge style={{ backgroundColor: selectedSheet.color, color: '#fff' }}>
+                  → {selectedSheet.name}
+                </Badge>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -342,7 +379,9 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
                     </label>
                     <Select
                       value={columnMapping[field.key as keyof ColumnMapping] || '__none__'}
-                      onValueChange={(v) => setColumnMapping({ ...columnMapping, [field.key]: v === '__none__' ? '' : v })}
+                      onValueChange={(v) =>
+                        setColumnMapping({ ...columnMapping, [field.key]: v === '__none__' ? '' : v })
+                      }
                     >
                       <SelectTrigger className="bg-muted/50">
                         <SelectValue placeholder="Select column" />
@@ -403,9 +442,12 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
             )}
 
             <div className="flex items-center justify-between">
-              <h3 className="font-medium">
-                Preview ({getLeadsToImport().length} leads to import)
-              </h3>
+              <h3 className="font-medium">Preview ({getLeadsToImport().length} leads to import)</h3>
+              {selectedSheet && (
+                <Badge style={{ backgroundColor: selectedSheet.color, color: '#fff' }}>
+                  → {selectedSheet.name}
+                </Badge>
+              )}
             </div>
 
             <ScrollArea className="flex-1 border border-border rounded-lg">
@@ -424,14 +466,11 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
                   {parsedData.slice(0, 50).map((row, idx) => {
                     const isDuplicate = duplicates.some((d) => d.row === row);
                     const willSkip = isDuplicate && skipDuplicates;
-                    
+
                     return (
                       <tr
                         key={idx}
-                        className={cn(
-                          'border-t border-border',
-                          willSkip && 'opacity-50 bg-destructive/5'
-                        )}
+                        className={cn('border-t border-border', willSkip && 'opacity-50 bg-destructive/5')}
                       >
                         <td className="p-3">
                           <div className="flex items-center gap-2">
@@ -449,7 +488,9 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
                         <td className="p-3">{row[columnMapping.source] || '-'}</td>
                         <td className="p-3">
                           {willSkip ? (
-                            <Badge variant="outline" className="text-muted-foreground">Skipped</Badge>
+                            <Badge variant="outline" className="text-muted-foreground">
+                              Skipped
+                            </Badge>
                           ) : (
                             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">New</Badge>
                           )}
@@ -485,13 +526,11 @@ export function BulkUploadModal({ open, onOpenChange }: BulkUploadModalProps) {
             </div>
             <div>
               <p className="text-lg font-medium mb-2">Importing leads...</p>
-              <p className="text-muted-foreground">{importProgress}% complete</p>
+              <p className="text-muted-foreground">Please wait while we import your leads.</p>
             </div>
-            <div className="w-full max-w-xs mx-auto h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-neon transition-all duration-300"
-                style={{ width: `${importProgress}%` }}
-              />
+            <div className="max-w-xs mx-auto space-y-2">
+              <Progress value={importProgress} className="h-2" />
+              <p className="text-sm text-muted-foreground">{importProgress}% complete</p>
             </div>
           </div>
         )}
