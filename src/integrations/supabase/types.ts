@@ -143,6 +143,33 @@ export type Database = {
           },
         ]
       }
+      lead_sheets: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -153,6 +180,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          sheet_id: string | null
           source: string | null
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
@@ -166,6 +194,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          sheet_id?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
@@ -179,6 +208,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          sheet_id?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
@@ -189,6 +219,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_sheet_id_fkey"
+            columns: ["sheet_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sheets"
             referencedColumns: ["id"]
           },
         ]

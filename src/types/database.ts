@@ -14,6 +14,15 @@ export interface TeamMember {
   updated_at: string;
 }
 
+export interface LeadSheet {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -24,9 +33,11 @@ export interface Lead {
   status: LeadStatus;
   assigned_to?: string;
   notes?: string;
+  sheet_id?: string;
   created_at: string;
   updated_at: string;
   assignee?: TeamMember;
+  sheet?: LeadSheet;
 }
 
 export interface Project {
