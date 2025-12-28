@@ -5,19 +5,20 @@ import { useLeadSheets } from '@/hooks/useLeadSheets';
 import { useTeam } from '@/hooks/useTeam';
 import { Lead, LeadStatus } from '@/types/database';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, Trash2, Edit, X } from 'lucide-react';
 import { SheetTabs } from '@/components/leads/SheetTabs';
 import { LeadsTable } from '@/components/leads/LeadsTable';
 import { LeadFormDialog, LeadFormData } from '@/components/leads/LeadFormDialog';
 import { BulkUploadModal } from '@/components/leads/BulkUploadModal';
 import { GenerateEmailDialog } from '@/components/leads/GenerateEmailDialog';
 import { LeadViewDialog } from '@/components/leads/LeadViewDialog';
+import { BulkEditDialog } from '@/components/leads/BulkEditDialog';
 
 export default function Leads() {
   const [activeSheetId, setActiveSheetId] = useState<string | null>(null);
   const { sheets } = useLeadSheets();
   const { leads: allLeads } = useAllLeads();
-  const { leads: filteredLeads, isLoading, createLead, updateLead, deleteLead, updateLeadStatus } = useLeads(activeSheetId);
+  const { leads: filteredLeads, isLoading, createLead, updateLead, deleteLead, deleteLeads, updateLeads, updateLeadStatus } = useLeads(activeSheetId);
   const { team } = useTeam();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -25,6 +26,8 @@ export default function Leads() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [emailLead, setEmailLead] = useState<Lead | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
 
   // Calculate lead counts per sheet
   const leadCounts = useMemo(() => {
@@ -79,6 +82,23 @@ export default function Leads() {
     updateLeadStatus.mutate({ id, status });
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    await deleteLeads.mutateAsync(selectedIds);
+    setSelectedIds([]);
+  };
+
+  const handleBulkEdit = async (updates: Partial<Lead>) => {
+    if (selectedIds.length === 0) return;
+    await updateLeads.mutateAsync({ ids: selectedIds, updates });
+    setSelectedIds([]);
+    setIsBulkEditOpen(false);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+  };
+
   return (
     <div className="min-h-screen">
       <Header
@@ -94,6 +114,40 @@ export default function Leads() {
       />
 
       <div className="p-6">
+        {/* Bulk Actions Bar */}
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-3 mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg animate-fade-in-up">
+            <span className="text-sm font-medium">
+              {selectedIds.length} lead{selectedIds.length > 1 ? 's' : ''} selected
+            </span>
+            <div className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBulkEditOpen(true)}
+              className="border-primary/30"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Selected
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
         {/* Actions Bar */}
         <div className="flex items-center justify-between mb-6">
           <div className="text-sm text-muted-foreground">
@@ -131,6 +185,8 @@ export default function Leads() {
           onEdit={setEditingLead}
           onDelete={handleDelete}
           onEmail={setEmailLead}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
         />
       </div>
 
@@ -175,6 +231,16 @@ export default function Leads() {
         onOpenChange={setIsBulkUploadOpen}
         sheets={sheets}
         activeSheetId={activeSheetId}
+      />
+
+      {/* Bulk Edit Dialog */}
+      <BulkEditDialog
+        open={isBulkEditOpen}
+        onOpenChange={setIsBulkEditOpen}
+        selectedCount={selectedIds.length}
+        sheets={sheets}
+        team={team}
+        onSubmit={handleBulkEdit}
       />
     </div>
   );

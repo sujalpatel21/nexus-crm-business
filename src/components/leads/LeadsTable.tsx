@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Lead, LeadStatus, LeadSheet } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -28,6 +29,8 @@ interface LeadsTableProps {
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
   onEmail: (lead: Lead) => void;
+  selectedIds: string[];
+  onSelectionChange: (ids: string[]) => void;
 }
 
 type SortField = 'name' | 'created_at' | 'status' | 'city';
@@ -44,6 +47,8 @@ export function LeadsTable({
   onEdit,
   onDelete,
   onEmail,
+  selectedIds,
+  onSelectionChange,
 }: LeadsTableProps) {
   const { team } = useTeam();
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,6 +108,27 @@ export function LeadsTable({
     return sheets.find((s) => s.id === sheetId)?.color;
   };
 
+  const allFilteredSelected = filteredAndSortedLeads.length > 0 && 
+    filteredAndSortedLeads.every((lead) => selectedIds.includes(lead.id));
+
+  const someSelected = selectedIds.length > 0 && !allFilteredSelected;
+
+  const handleSelectAll = () => {
+    if (allFilteredSelected) {
+      onSelectionChange([]);
+    } else {
+      onSelectionChange(filteredAndSortedLeads.map((lead) => lead.id));
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    if (selectedIds.includes(id)) {
+      onSelectionChange(selectedIds.filter((sid) => sid !== id));
+    } else {
+      onSelectionChange([...selectedIds, id]);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -138,6 +164,15 @@ export function LeadsTable({
           <table className="data-table">
             <thead>
               <tr className="bg-muted/30">
+                <th className="w-12">
+                  <Checkbox
+                    checked={allFilteredSelected}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all"
+                    className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                    {...(someSelected ? { "data-state": "indeterminate" } : {})}
+                  />
+                </th>
                 <th>
                   <button
                     onClick={() => handleSort('name')}
@@ -179,8 +214,16 @@ export function LeadsTable({
             <tbody>
               {filteredAndSortedLeads.map((lead) => {
                 const sheetColor = getSheetColor(lead.sheet_id);
+                const isSelected = selectedIds.includes(lead.id);
                 return (
-                  <tr key={lead.id} className="animate-fade-in-up">
+                  <tr key={lead.id} className={cn("animate-fade-in-up", isSelected && "bg-primary/10")}>
+                    <td>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => handleSelectOne(lead.id)}
+                        aria-label={`Select ${lead.name}`}
+                      />
+                    </td>
                     <td>
                       <div className="flex items-center gap-3">
                         <div

@@ -117,6 +117,42 @@ export function useLeads(sheetId?: string | null) {
     },
   });
 
+  const deleteLeads = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .in('id', ids);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast({ title: `${ids.length} leads deleted successfully` });
+    },
+    onError: (error) => {
+      toast({ title: 'Error deleting leads', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const updateLeads = useMutation({
+    mutationFn: async ({ ids, updates }: { ids: string[]; updates: Partial<Lead> }) => {
+      const { error } = await supabase
+        .from('leads')
+        .update(updates)
+        .in('id', ids);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { ids }) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast({ title: `${ids.length} leads updated successfully` });
+    },
+    onError: (error) => {
+      toast({ title: 'Error updating leads', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const updateLeadStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: LeadStatus }) => {
       const { data, error } = await supabase
@@ -145,6 +181,8 @@ export function useLeads(sheetId?: string | null) {
     createLead,
     updateLead,
     deleteLead,
+    deleteLeads,
+    updateLeads,
     updateLeadStatus,
   };
 }
