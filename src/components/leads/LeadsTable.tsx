@@ -108,10 +108,16 @@ export function LeadsTable({
     return sheets.find((s) => s.id === sheetId)?.color;
   };
 
-  const allFilteredSelected = filteredAndSortedLeads.length > 0 && 
+  const allFilteredSelected = filteredAndSortedLeads.length > 0 &&
     filteredAndSortedLeads.every((lead) => selectedIds.includes(lead.id));
 
   const someSelected = selectedIds.length > 0 && !allFilteredSelected;
+
+  const headerChecked: boolean | 'indeterminate' = allFilteredSelected
+    ? true
+    : someSelected
+      ? 'indeterminate'
+      : false;
 
   const handleSelectAll = () => {
     if (allFilteredSelected) {
@@ -166,11 +172,10 @@ export function LeadsTable({
               <tr className="bg-muted/30">
                 <th className="w-12">
                   <Checkbox
-                    checked={allFilteredSelected}
+                    checked={headerChecked}
                     onCheckedChange={handleSelectAll}
                     aria-label="Select all"
-                    className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
-                    {...(someSelected ? { "data-state": "indeterminate" } : {})}
+                    className="data-[state=indeterminate]:bg-primary/30 data-[state=indeterminate]:text-primary-foreground"
                   />
                 </th>
                 <th>
