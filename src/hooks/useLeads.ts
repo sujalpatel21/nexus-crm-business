@@ -4,6 +4,16 @@ import { Lead, LeadStatus } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 
+const BULK_CHUNK_SIZE = 50;
+
+function chunkArray<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export function useLeads(sheetId?: string | null) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -119,12 +129,17 @@ export function useLeads(sheetId?: string | null) {
 
   const deleteLeads = useMutation({
     mutationFn: async (ids: string[]) => {
-      const { error } = await supabase
-        .from('leads')
-        .delete()
-        .in('id', ids);
+      if (!ids.length) return;
 
-      if (error) throw error;
+      // Avoid URL-length issues by deleting in chunks
+      for (const chunk of chunkArray(ids, BULK_CHUNK_SIZE)) {
+        const { error } = await supabase
+          .from('leads')
+          .delete()
+          .in('id', chunk);
+
+        if (error) throw error;
+      }
     },
     onSuccess: (_, ids) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -137,12 +152,17 @@ export function useLeads(sheetId?: string | null) {
 
   const updateLeads = useMutation({
     mutationFn: async ({ ids, updates }: { ids: string[]; updates: Partial<Lead> }) => {
-      const { error } = await supabase
-        .from('leads')
-        .update(updates)
-        .in('id', ids);
+      if (!ids.length) return;
 
-      if (error) throw error;
+      // Avoid URL-length issues by updating in chunks
+      for (const chunk of chunkArray(ids, BULK_CHUNK_SIZE)) {
+        const { error } = await supabase
+          .from('leads')
+          .update(updates)
+          .in('id', chunk);
+
+        if (error) throw error;
+      }
     },
     onSuccess: (_, { ids }) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
