@@ -25,6 +25,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { MonthlyAttendanceView } from "@/components/attendance/MonthlyAttendanceView";
 import {
   CalendarDays,
   Users,
@@ -174,6 +175,7 @@ export default function Attendance() {
           <TabsTrigger value="daily">Daily Attendance</TabsTrigger>
           <TabsTrigger value="employees">By Employee</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="monthly">Month-Wise</TabsTrigger>
         </TabsList>
 
         {/* Daily Attendance Tab */}
@@ -432,6 +434,11 @@ export default function Attendance() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Month-Wise Tab */}
+        <TabsContent value="monthly">
+          <MonthlyAttendanceView employees={activeEmployees} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>
