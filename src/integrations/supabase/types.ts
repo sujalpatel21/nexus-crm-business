@@ -462,6 +462,68 @@ export type Database = {
         }
         Relationships: []
       }
+      zoom_meeting_attendance: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          meeting_date: string
+          remarks: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          meeting_date: string
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          meeting_date?: string
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zoom_meeting_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zoom_meeting_days: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_date: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_date: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -470,6 +532,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      attendance_status: "present" | "absent" | "late"
       lead_status: "new" | "contacted" | "qualified" | "converted" | "lost"
       project_status: "active" | "completed" | "on_hold" | "cancelled"
       task_priority: "low" | "medium" | "high"
@@ -601,6 +664,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      attendance_status: ["present", "absent", "late"],
       lead_status: ["new", "contacted", "qualified", "converted", "lost"],
       project_status: ["active", "completed", "on_hold", "cancelled"],
       task_priority: ["low", "medium", "high"],

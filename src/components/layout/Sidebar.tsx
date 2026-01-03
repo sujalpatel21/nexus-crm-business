@@ -12,6 +12,7 @@ import {
   Settings,
   HelpCircle,
   Sparkles,
+  Video,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,7 @@ const navItems = [
   { icon: Users, label: 'Lead Management', path: '/leads' },
   { icon: FolderKanban, label: 'Project Management', path: '/projects' },
   { icon: UserCircle, label: 'Team', path: '/team' },
+  { icon: Video, label: 'Zoom Attendance', path: '/attendance' },
   { icon: Calendar, label: 'Calendar', path: '/calendar' },
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: FileText, label: 'Documents', path: '/documents' },
