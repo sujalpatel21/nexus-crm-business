@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import FunnelPerformance from "./pages/FunnelPerformance";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/funnel-performance" element={<FunnelPerformance />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/help" element={<Help />} />
           </Route>

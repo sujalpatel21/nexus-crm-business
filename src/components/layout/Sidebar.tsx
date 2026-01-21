@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Sparkles,
   Video,
+  TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ const navItems = [
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: FileText, label: 'Documents', path: '/documents' },
   { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+  { icon: TrendingUp, label: 'Funnel Performance', path: '/funnel-performance' },
   { icon: CheckSquare, label: 'Task Management', path: '/tasks' },
   { icon: Settings, label: 'Settings', path: '/settings' },
   { icon: HelpCircle, label: 'Help & Support', path: '/help' },
@@ -92,7 +94,7 @@ export function Sidebar() {
             </div>
           </div>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div 
+            <div
               className="h-full rounded-full bg-gradient-neon transition-all duration-500"
               style={{ width: '92%' }}
             />
