@@ -11,6 +11,7 @@ import { LeadsTable } from '@/components/leads/LeadsTable';
 import { LeadFormDialog, LeadFormData } from '@/components/leads/LeadFormDialog';
 import { BulkUploadModal } from '@/components/leads/BulkUploadModal';
 import { GenerateEmailDialog } from '@/components/leads/GenerateEmailDialog';
+import { SendEmailDialog } from '@/components/leads/SendEmailDialog';
 import { LeadViewDialog } from '@/components/leads/LeadViewDialog';
 import { BulkEditDialog } from '@/components/leads/BulkEditDialog';
 
@@ -26,6 +27,7 @@ export default function Leads() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [emailLead, setEmailLead] = useState<Lead | null>(null);
+  const [sendEmailLead, setSendEmailLead] = useState<Lead | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
 
@@ -185,6 +187,7 @@ export default function Leads() {
           onEdit={setEditingLead}
           onDelete={handleDelete}
           onEmail={setEmailLead}
+          onSendEmail={setSendEmailLead}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
         />
@@ -223,6 +226,13 @@ export default function Leads() {
         lead={emailLead}
         open={!!emailLead}
         onOpenChange={() => setEmailLead(null)}
+      />
+
+      {/* Send Email Dialog */}
+      <SendEmailDialog
+        lead={sendEmailLead}
+        open={!!sendEmailLead}
+        onOpenChange={() => setSendEmailLead(null)}
       />
 
       {/* Bulk Upload Modal */}

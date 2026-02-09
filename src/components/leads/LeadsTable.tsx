@@ -29,6 +29,7 @@ interface LeadsTableProps {
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
   onEmail: (lead: Lead) => void;
+  onSendEmail: (lead: Lead) => void;
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
 }
@@ -47,6 +48,7 @@ export function LeadsTable({
   onEdit,
   onDelete,
   onEmail,
+  onSendEmail,
   selectedIds,
   onSelectionChange,
 }: LeadsTableProps) {
@@ -287,6 +289,11 @@ export function LeadsTable({
                           <DropdownMenuItem onClick={() => onEmail(lead)} className="cursor-pointer">
                             <Mail className="w-4 h-4 mr-2" /> Generate Email
                           </DropdownMenuItem>
+                          {lead.email && (
+                            <DropdownMenuItem onClick={() => onSendEmail(lead)} className="cursor-pointer">
+                              <Mail className="w-4 h-4 mr-2 fill-current" /> Send Email
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => onEdit(lead)} className="cursor-pointer">
                             <Edit className="w-4 h-4 mr-2" /> Edit
                           </DropdownMenuItem>
