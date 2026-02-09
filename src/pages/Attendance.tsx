@@ -105,7 +105,7 @@ export default function Attendance() {
   return (
     <div className="space-y-6">
       <Header
-        title="Zoom Meeting Attendance"
+        title="Employee Attendance"
         subtitle="Track daily meeting attendance and view KPIs"
       />
 
@@ -345,8 +345,8 @@ export default function Attendance() {
                               summary.attendancePercentage >= 80
                                 ? "bg-green-500/20 text-green-400 border-green-500/30"
                                 : summary.attendancePercentage >= 60
-                                ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                                : "bg-red-500/20 text-red-400 border-red-500/30"
+                                  ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                                  : "bg-red-500/20 text-red-400 border-red-500/30"
                             }
                           >
                             {summary.attendancePercentage}%
@@ -420,8 +420,8 @@ export default function Attendance() {
                               summary.attendancePercentage >= 80
                                 ? "bg-green-500/20 text-green-400 border-green-500/30"
                                 : summary.attendancePercentage >= 60
-                                ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                                : "bg-red-500/20 text-red-400 border-red-500/30"
+                                  ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                                  : "bg-red-500/20 text-red-400 border-red-500/30"
                             }
                           >
                             {summary.attendancePercentage}%
