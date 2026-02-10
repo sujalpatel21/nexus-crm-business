@@ -155,7 +155,7 @@ export function SendEmailDialog({ lead, leads, open, onOpenChange }: SendEmailDi
                             className="min-h-[300px] bg-muted/50 border-border font-mono text-sm"
                         />
                         <p className="text-xs text-muted-foreground">
-                            Use {'{'}{'{'}}leadName{'}'}{'}'}  for personalization
+                            Use {'{{leadName}}'} for personalization
                         </p>
                     </div>
 
